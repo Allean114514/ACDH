@@ -1,0 +1,65 @@
+plugins {
+    id 'net.neoforged.moddev' version '1.0.11'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.mod_id
+}
+
+java {
+    toolchain {
+        // 环境里只有 Zulu 25，直接用它来编译
+        // options.release = 21 会确保生成的 class 兼容 Java 21
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+neoForge {
+    version = project.neo_version
+    validateAccessTransformers = true
+
+    runs {
+        client {
+            client()
+        }
+        data {
+            data()
+        }
+        server {
+            server()
+        }
+    }
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}
+
+processResources {
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand(project.properties)
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            "Specification-Title"   : project.mod_id,
+            "Specification-Vendor"  : project.mod_authors,
+            "Specification-Version" : project.mod_version,
+            "Implementation-Title"   : project.mod_id,
+            "Implementation-Vendor" : project.mod_authors,
+            "Implementation-Version": project.mod_version,
+            "Timestamp"             : System.currentTimeMillis()
+        ])
+    }
+}
